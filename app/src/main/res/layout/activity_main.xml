@@ -17,14 +17,6 @@
         android:hint="Enter a query, then click Search"
         android:textSize="22sp" />
 
-    <TextView
-        android:id="@+id/tv_url_display"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="Click search and your URL will show up here!"
-        android:textSize="22sp" />
-
     <ProgressBar
         android:layout_width="42dp"
         android:layout_height="42dp"
@@ -32,22 +24,10 @@
         android:layout_gravity="center"
         android:visibility="gone" />
 
-    <FrameLayout
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/recyclerView_news"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
-        <ScrollView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp">
-
-            <TextView
-                android:id="@+id/tv_newsapi_search_results_json"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Make a search!"
-                android:textSize="18sp" />
-        </ScrollView>
-    </FrameLayout>
+        android:layout_height="match_parent" />
 
     <TextView
         android:layout_width="wrap_content"
