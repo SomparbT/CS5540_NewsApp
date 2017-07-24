@@ -39,10 +39,10 @@ public class NetworkUtils {
     /**
      * Builds the URL used to query newsapi.
      *
-     * @param newsapiSearchQuery The keyword that will be queried for.
+     *
      * @return The URL to use to query the GitHub.
      */
-    public static URL buildUrl(String newsapiSearchQuery) {
+    public static URL buildUrl() {
         Uri builtUri = Uri.parse(NEWSAPI_BASE_URL).buildUpon()
                 .appendQueryParameter(PARAM_SOURCE, source)
                 .appendQueryParameter(PARAM_SORTBY, sortBy)

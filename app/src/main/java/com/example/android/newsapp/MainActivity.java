@@ -25,7 +25,6 @@ import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
-    private EditText mSearchBoxEditText;
     TextView mErrorMessageDisplay;
     ProgressBar mLoadingIndicator;
     private RecyclerView mRecyclerView;
@@ -35,7 +34,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mSearchBoxEditText = (EditText) findViewById(R.id.et_search_box);
         mErrorMessageDisplay = (TextView) findViewById(R.id.tv_error_message_display);
         mLoadingIndicator = (ProgressBar) findViewById(R.id.pb_loading_indicator);
 
@@ -51,8 +49,7 @@ public class MainActivity extends AppCompatActivity {
      * our {@link NewsapiQueryTask}
      */
     private void makeNewsapiSearchQuery() {
-        String newsapiQuery = mSearchBoxEditText.getText().toString();
-        URL newsapiSearchUrl = NetworkUtils.buildUrl(newsapiQuery);
+        URL newsapiSearchUrl = NetworkUtils.buildUrl();
         new NewsapiQueryTask().execute(newsapiSearchUrl);
     }
 

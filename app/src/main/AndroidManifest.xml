@@ -20,7 +20,10 @@
             </intent-filter>
         </activity>
 
-
+        <service android:name=".NewsJob"
+            android:exported="false">
+            <action android:name="com.firebase.jobdispatcher.ACTION_EXECUTE"/>
+        </service>
     </application>
 
 </manifest>

@@ -10,12 +10,6 @@
     android:paddingTop="16dp"
     tools:context="com.example.android.newsapp.MainActivity">
 
-    <EditText
-        android:id="@+id/et_search_box"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Enter a query, then click Search"
-        android:textSize="22sp" />
 
     <ProgressBar
         android:layout_width="42dp"
