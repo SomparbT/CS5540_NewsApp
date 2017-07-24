@@ -1,4 +1,4 @@
-package com.example.android.newsapp.utilities;
+package com.example.android.newsapp;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
@@ -7,8 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.example.android.newsapp.R;
-import com.example.android.newsapp.model.NewsItem;
+import com.example.android.newsapp.data.NewsItem;
 
 import java.util.ArrayList;
 

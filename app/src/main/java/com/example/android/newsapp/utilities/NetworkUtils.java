@@ -3,7 +3,7 @@ package com.example.android.newsapp.utilities;
 import android.net.Uri;
 import android.util.Log;
 
-import com.example.android.newsapp.model.NewsItem;
+import com.example.android.newsapp.data.NewsItem;
 
 import org.json.JSONArray;
 import org.json.JSONException;
