@@ -28,8 +28,8 @@ import com.firebase.jobdispatcher.Lifetime;
 import com.firebase.jobdispatcher.Trigger;
 
 public class ScheduleUtilities {
-    private static final int SCHEDULE_INTERVAL_MINUTES = 360;
-    private static final int SYNC_FLEXTIME_SECONDS = 60;
+    private static final int PERIODICITY = 60;
+    private static final int TOLERANCE_INTERVAL = 60;
     private static final String NEWS_JOB_TAG = "news_job_tag";
 
     private static boolean sInitialized;
@@ -40,16 +40,19 @@ public class ScheduleUtilities {
         Driver driver = new GooglePlayDriver(context);
         FirebaseJobDispatcher dispatcher = new FirebaseJobDispatcher(driver);
 
+        //create a job that works only when
         Job constraintRefreshJob = dispatcher.newJobBuilder()
                 .setService(NewsJob.class)
                 .setTag(NEWS_JOB_TAG)
-                .setConstraints(Constraint.ON_ANY_NETWORK)
-                .setLifetime(Lifetime.FOREVER)
-                .setRecurring(true)
-                .setTrigger(Trigger.executionWindow(SCHEDULE_INTERVAL_MINUTES,
-                        SCHEDULE_INTERVAL_MINUTES + SYNC_FLEXTIME_SECONDS))
-                .setReplaceCurrent(true)
+                .setConstraints(Constraint.ON_ANY_NETWORK)//only run on an unmetered network
+                .setLifetime(Lifetime.FOREVER)//persisted on device reboot
+                .setRecurring(true)//periodically schedule
+                .setTrigger(Trigger.executionWindow(PERIODICITY,
+                        PERIODICITY + TOLERANCE_INTERVAL))//schedule every 60 seconds, start between 60 - 120 seconds
+                .setReplaceCurrent(true)//overwrite an existing job with the same tag
                 .build();
+
+
 
         dispatcher.schedule(constraintRefreshJob);
         sInitialized = true;

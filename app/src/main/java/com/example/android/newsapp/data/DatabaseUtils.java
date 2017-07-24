@@ -20,20 +20,6 @@ import static com.example.android.newsapp.data.Contract.TABLE_NEWS.TABLE_NAME;
 
 public class DatabaseUtils {
 
-    //method for retrieve all news from database sort by date
-    public static Cursor getAll(SQLiteDatabase db) {
-        Cursor cursor = db.query(
-                TABLE_NAME,
-                null,
-                null,
-                null,
-                null,
-                null,
-                COLUMN_NAME_DATE + " DESC"
-        );
-        return cursor;
-    }
-
     public static void bulkInsert(SQLiteDatabase db, ArrayList<NewsItem> newsItems) {
         // method for insert all news from network to database
         db.beginTransaction();
@@ -53,6 +39,20 @@ public class DatabaseUtils {
             db.endTransaction();
             db.close();
         }
+    }
+
+    //method for retrieve all news from database sort by date
+    public static Cursor getAll(SQLiteDatabase db) {
+        Cursor cursor = db.query(
+                TABLE_NAME,
+                null,
+                null,
+                null,
+                null,
+                null,
+                COLUMN_NAME_DATE + " DESC"
+        );
+        return cursor;
     }
 
     public static void deleteAll(SQLiteDatabase db) {

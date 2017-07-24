@@ -6,7 +6,7 @@ import android.widget.Toast;
 import com.firebase.jobdispatcher.JobParameters;
 import com.firebase.jobdispatcher.JobService;
 
-
+//service for running refresh task
 public class NewsJob extends JobService {
     AsyncTask mBackgroundTask;
 
@@ -21,7 +21,7 @@ public class NewsJob extends JobService {
 
             @Override
             protected Object doInBackground(Object[] params) {
-                RefreshTasks.refreshArticles(NewsJob.this);
+                RefreshTasks.refreshNews(NewsJob.this);
                 return null;
             }
 

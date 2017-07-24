@@ -40,7 +40,7 @@ public class NetworkUtils {
      * Builds the URL used to query newsapi.
      *
      *
-     * @return The URL to use to query the GitHub.
+     * @return The URL to use to get news from Newsapi.
      */
     public static URL buildUrl() {
         Uri builtUri = Uri.parse(NEWSAPI_BASE_URL).buildUpon()

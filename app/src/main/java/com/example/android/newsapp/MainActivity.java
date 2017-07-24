@@ -1,12 +1,20 @@
 package com.example.android.newsapp;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.preference.PreferenceManager;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.AsyncTaskLoader;
+import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -14,6 +22,9 @@ import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.example.android.newsapp.data.Contract;
+import com.example.android.newsapp.data.DBHelper;
+import com.example.android.newsapp.data.DatabaseUtils;
 import com.example.android.newsapp.data.NewsItem;
 import com.example.android.newsapp.utilities.NetworkUtils;
 
@@ -23,86 +34,114 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity
+        implements LoaderManager.LoaderCallbacks<Void>, NewsAdapter.ItemClickListener{
 
-    TextView mErrorMessageDisplay;
-    ProgressBar mLoadingIndicator;
+
+    private ProgressBar mLoadingIndicator;
     private RecyclerView mRecyclerView;
+    private NewsAdapter mAdapter;
+    private Cursor mCursor;
+    private SQLiteDatabase mDb;
+
+    static final String TAG = "mainActivity";
+
+    //Create a constant int to uniquely identify loader.
+    private static final int NEWS_LOADER = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mErrorMessageDisplay = (TextView) findViewById(R.id.tv_error_message_display);
         mLoadingIndicator = (ProgressBar) findViewById(R.id.pb_loading_indicator);
 
         mRecyclerView = (RecyclerView) findViewById(R.id.recyclerView_news);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        mRecyclerView.setVisibility(View.GONE);
-    }
 
-    /**
-     * This method retrieves the search text from the EditText, constructs the
-     * URL (using {@link NetworkUtils}) for the news you'd like to find, displays
-     * that URL in a TextView, and finally fires off an AsyncTask to perform the GET request using
-     * our {@link NewsapiQueryTask}
-     */
-    private void makeNewsapiSearchQuery() {
-        URL newsapiSearchUrl = NetworkUtils.buildUrl();
-        new NewsapiQueryTask().execute(newsapiSearchUrl);
-    }
+        //check never installed by get sharedPreferences
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        boolean isFirst = prefs.getBoolean("isfirst", true);
 
-    public void showJsonDataView(){
-        mErrorMessageDisplay.setVisibility(View.GONE);
-        mRecyclerView.setVisibility(View.VISIBLE);
-    }
-
-    public void showErrorMessage(){
-        mErrorMessageDisplay.setVisibility(View.VISIBLE);
-        mRecyclerView.setVisibility(View.GONE);
-    }
-    public class NewsapiQueryTask extends AsyncTask<URL, Void, ArrayList<NewsItem>> {
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            mLoadingIndicator.setVisibility(View.VISIBLE);
+        //if first time installed, load news from network to database
+        if (isFirst) {
+            load();
+            SharedPreferences.Editor editor = prefs.edit();
+            editor.putBoolean("isfirst", false);
+            editor.commit();
         }
 
-        @Override
-        protected ArrayList<NewsItem> doInBackground(URL... params) {
-            URL searchUrl = params[0];
-            ArrayList<NewsItem> newsapiSearchResults = null;
-            try {
-                String jsonResult = NetworkUtils.getResponseFromHttpUrl(searchUrl);
-                newsapiSearchResults = NetworkUtils.parseJSON(jsonResult);
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (JSONException e) {
-            e.printStackTrace();
-        }
-            return newsapiSearchResults;
-        }
+        //create job schedule
+        ScheduleUtilities.scheduleRefresh(this);
+    }
 
-        @Override
-        protected void onPostExecute(final ArrayList<NewsItem> newsapiSearchResults) {
-            mLoadingIndicator.setVisibility(View.GONE);
-            if (newsapiSearchResults != null) {
-                showJsonDataView();
-                NewsAdapter adapter = new NewsAdapter(newsapiSearchResults, new NewsAdapter.ItemClickListener() {
-                    @Override
-                    public void onItemClick(int clickedItemIndex) {
-                        String url = newsapiSearchResults.get(clickedItemIndex).getUrl();
-                        openWebPage(url);
-                    }
-                });
-                mRecyclerView.setAdapter(adapter);
-            }else{
-                showErrorMessage();
+
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        mDb = new DBHelper(MainActivity.this).getReadableDatabase();
+        mCursor = DatabaseUtils.getAll(mDb);
+        mAdapter = new NewsAdapter(mCursor, this);
+        mRecyclerView.setAdapter(mAdapter);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        mDb.close();
+        mCursor.close();
+    }
+
+    //use asyncTaskLoader to load news from network to db
+    @Override
+    public Loader<Void> onCreateLoader(int id, final Bundle args) {
+        return new AsyncTaskLoader<Void>(this) {
+
+            @Override
+            protected void onStartLoading() {
+                super.onStartLoading();
+                mLoadingIndicator.setVisibility(View.VISIBLE);
             }
-        }
+
+            @Override
+            public Void loadInBackground() {
+                RefreshTasks.refreshNews(MainActivity.this);
+                return null;
+            }
+
+        };
     }
+
+    //load news from db to recyclerView
+    @Override
+    public void onLoadFinished(Loader<Void> loader, Void data) {
+        mLoadingIndicator.setVisibility(View.GONE);
+        mDb = new DBHelper(MainActivity.this).getReadableDatabase();
+        mCursor = DatabaseUtils.getAll(mDb);
+
+        mAdapter = new NewsAdapter(mCursor, this);
+        mRecyclerView.setAdapter(mAdapter);
+        mAdapter.notifyDataSetChanged();
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Void> loader) {
+
+    }
+
+    //when click open link to news website
+    @Override
+    public void onItemClick(Cursor cursor, int clickedItemIndex) {
+        cursor.moveToPosition(clickedItemIndex);
+        String url = cursor.getString(cursor.getColumnIndex(Contract.TABLE_NEWS.COLUMN_NAME_URL));
+        Log.d(TAG, String.format("Url %s", url));
+
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setData(Uri.parse(url));
+        startActivity(intent);
+    }
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -110,43 +149,21 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
+    //refresh when click
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int itemThatWasClickedId = item.getItemId();
-        if (itemThatWasClickedId == R.id.action_search) {
-            makeNewsapiSearchQuery();
+        if (itemThatWasClickedId == R.id.action_refresh) {
+            load();
             return true;
         }
         return super.onOptionsItemSelected(item);
     }
 
 
-    /**
-     * This method fires off an implicit Intent to open a webpage.
-     *
-     * @param url Url of webpage to open. Should start with http:// or https:// as that is the
-     *            scheme of the URI expected with this Intent according to the Common Intents page
-     */
-    private void openWebPage(String url) {
-        /*
-         * We wanted to demonstrate the Uri.parse method because its usage occurs frequently. You
-         * could have just as easily passed in a Uri as the parameter of this method.
-         */
-        Uri webpage = Uri.parse(url);
+    public void load() {
+        LoaderManager loaderManager = getSupportLoaderManager();
+        loaderManager.restartLoader(NEWS_LOADER, null, this).forceLoad();
 
-        /*
-         * Here, we create the Intent with the action of ACTION_VIEW. This action allows the user
-         * to view particular content. In this case, our webpage URL.
-         */
-        Intent intent = new Intent(Intent.ACTION_VIEW, webpage);
-
-        /*
-         * This is a check we perform with every implicit Intent that we launch. In some cases,
-         * the device where this code is running might not have an Activity to perform the action
-         * with the data we've specified. Without this check, in those cases your app would crash.
-         */
-        if (intent.resolveActivity(getPackageManager()) != null) {
-            startActivity(intent);
-        }
     }
 }

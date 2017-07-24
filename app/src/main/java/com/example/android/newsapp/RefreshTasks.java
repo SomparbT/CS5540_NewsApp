@@ -31,12 +31,13 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 
+//task for download news from network to database
 public class RefreshTasks {
 
     public static final String ACTION_REFRESH = "refresh";
 
 
-    public static void refreshArticles(Context context) {
+    public static void refreshNews(Context context) {
         ArrayList<NewsItem> result = null;
         URL url = NetworkUtils.buildUrl();
 

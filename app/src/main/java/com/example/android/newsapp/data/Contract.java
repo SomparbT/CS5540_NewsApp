@@ -6,7 +6,7 @@ import android.provider.BaseColumns;
  * Created by Siriporn on 7/23/2017.
  */
 
-//create contract to store news
+//create contract to store news items
 public class Contract {
 
     public static class TABLE_NEWS implements BaseColumns {
