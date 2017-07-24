@@ -27,6 +27,7 @@ dependencies {
     compile 'com.android.support:appcompat-v7:25.3.1'
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
     compile 'com.android.support:recyclerview-v7:25.3.1'
+    // add firebase and picasso dependencies
     compile 'com.firebase:firebase-jobdispatcher:0.5.2'
     compile "com.squareup.picasso:picasso:2.4.0"
     testCompile 'junit:junit:4.12'

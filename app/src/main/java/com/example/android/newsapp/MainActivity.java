@@ -71,6 +71,11 @@ public class MainActivity extends AppCompatActivity
             editor.commit();
         }
 
+        /*
+         * Initialize the loader
+         */
+        getSupportLoaderManager().initLoader(NEWS_LOADER, null, this);
+
         //create job schedule
         ScheduleUtilities.scheduleRefresh(this);
     }
